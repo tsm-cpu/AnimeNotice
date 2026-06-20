@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${isEdit ? 'アニメを編集' : 'アニメを追加'} + ' - AnimeNotice'">アニメ追加 - AnimeNotice</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<nav class="navbar">
+    <div class="navbar-brand">
+        <a th:href="@{/}" class="brand-link">
+            <span class="brand-icon">🌸</span>
+            <span class="brand-name">AnimeNotice</span>
+        </a>
+    </div>
+    <div class="navbar-actions">
+        <a th:href="@{/}" class="btn btn-ghost">← 一覧に戻る</a>
+    </div>
+</nav>
+
+<main class="container">
+    <div class="form-page">
+        <h1 th:text="${isEdit ? 'アニメを編集' : 'アニメを追加'}">アニメを追加</h1>
+
+        <form th:action="${isEdit ? '/anime/' + anime.id + '/update' : '/anime'}"
+              th:object="${anime}" method="post" class="anime-form">
+
+            <div class="form-group">
+                <label for="title" class="form-label">タイトル <span class="required">*</span></label>
+                <input type="text" id="title" th:field="*{title}" class="form-input"
+                       placeholder="例: 鬼滅の刃" th:classappend="${#fields.hasErrors('title')} ? 'input-error' : ''">
+                <span class="error-message" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></span>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="dayOfWeek" class="form-label">放送曜日 <span class="required">*</span></label>
+                    <select id="dayOfWeek" th:field="*{dayOfWeek}" class="form-select"
+                            th:classappend="${#fields.hasErrors('dayOfWeek')} ? 'input-error' : ''">
+                        <option value="">選択してください</option>
+                        <option th:each="entry : ${dayNames}"
+                                th:value="${entry.key}"
+                                th:text="${entry.value}"></option>
+                    </select>
+                    <span class="error-message" th:if="${#fields.hasErrors('dayOfWeek')}" th:errors="*{dayOfWeek}"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="startTime" class="form-label">放送時間</label>
+                    <input type="text" id="startTime" th:field="*{startTime}" class="form-input"
+                           placeholder="例: 22:00">
+                    <span class="form-hint">任意 (例: 22:00)</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="streamingSite" class="form-label">配信サイト <span class="required">*</span></label>
+                <select id="streamingSite" th:field="*{streamingSite}" class="form-select"
+                        th:classappend="${#fields.hasErrors('streamingSite')} ? 'input-error' : ''">
+                    <option value="">選択してください</option>
+                    <option th:each="site : ${streamingSites}"
+                            th:value="${site}"
+                            th:text="${site.displayName}"></option>
+                </select>
+                <span class="error-message" th:if="${#fields.hasErrors('streamingSite')}" th:errors="*{streamingSite}"></span>
+            </div>
+
+            <div class="form-group">
+                <label for="memo" class="form-label">メモ</label>
+                <textarea id="memo" th:field="*{memo}" class="form-textarea"
+                          placeholder="シーズン2など自由にメモできます" rows="3"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" th:field="*{notificationEnabled}">
+                    <span>更新通知を受け取る</span>
+                </label>
+            </div>
+
+            <div class="form-actions">
+                <a th:href="@{/}" class="btn btn-ghost">キャンセル</a>
+                <button type="submit" class="btn btn-primary"
+                        th:text="${isEdit ? '更新する' : '追加する'}">追加する</button>
+            </div>
+        </form>
+    </div>
+</main>
+</body>
+</html>

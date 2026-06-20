@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>設定 - AnimeNotice</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<nav class="navbar">
+    <div class="navbar-brand">
+        <a th:href="@{/}" class="brand-link">
+            <span class="brand-icon">🌸</span>
+            <span class="brand-name">AnimeNotice</span>
+        </a>
+    </div>
+    <div class="navbar-actions">
+        <span class="user-email" th:text="${userEmail}"></span>
+        <a th:href="@{/}" class="btn btn-ghost">← 一覧に戻る</a>
+        <form th:action="@{/logout}" method="post" style="display:inline">
+            <button type="submit" class="btn btn-ghost">ログアウト</button>
+        </form>
+    </div>
+</nav>
+
+<main class="container">
+    <div class="form-page">
+        <h1>⚙ 設定</h1>
+
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${infoMessage}" class="alert alert-info" th:text="${infoMessage}"></div>
+
+        <form th:action="@{/settings}" method="post" class="anime-form">
+
+            <section class="settings-section">
+                <h2>📧 通知メール設定</h2>
+                <div class="form-group">
+                    <label class="form-label">通知先メールアドレス</label>
+                    <p class="form-hint" style="padding: 10px 0;" th:text="${userEmail}"></p>
+                </div>
+
+                <div class="form-group">
+                    <label for="notificationTime" class="form-label">通知時間</label>
+                    <input type="time" id="notificationTime" name="notificationTime" class="form-input"
+                           th:value="${settings.notificationTime != null ? settings.notificationTime : '08:00'}">
+                    <span class="form-hint">毎日この時間に当日放送のアニメを通知します</span>
+                </div>
+            </section>
+
+            <section class="settings-section">
+                <h2>📺 利用中の配信サイト</h2>
+                <p class="section-desc">契約している配信サイトを選択してください</p>
+                <div class="sites-grid">
+                    <label th:each="site : ${streamingSites}" class="site-checkbox-label">
+                        <input type="checkbox" name="selectedSites" th:value="${site.name()}"
+                               th:checked="${settings.selectedSites != null and settings.selectedSites.contains(site.name())}">
+                        <span class="site-checkbox-text" th:text="${site.displayName}"></span>
+                    </label>
+                </div>
+            </section>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">設定を保存</button>
+            </div>
+        </form>
+
+        <section class="settings-section">
+            <h2>🧪 テスト通知</h2>
+            <p class="section-desc">設定したメールアドレスにテストメールを送信します</p>
+            <form th:action="@{/settings/test-notification}" method="post">
+                <button type="submit" class="btn btn-secondary">テストメールを送信</button>
+            </form>
+        </section>
+
+        <section class="settings-section">
+            <h2>ℹ メール設定方法</h2>
+            <div class="info-box">
+                <p>メール通知を利用するには <code>src/main/resources/application.properties</code> でメール設定を有効にしてください:</p>
+                <pre class="code-block">spring.mail.host=smtp.gmail.com
+spring.mail.port=587
+spring.mail.username=your-email@gmail.com
+spring.mail.password=your-app-password
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true</pre>
+                <p>Gmailの場合は <strong>アプリパスワード</strong> を使用してください。</p>
+            </div>
+        </section>
+    </div>
+</main>
+</body>
+</html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ログイン - AnimeNotice</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-header">
+            <span class="brand-icon">🌸</span>
+            <h1 class="brand-name">AnimeNotice</h1>
+            <p class="auth-subtitle">ログイン</p>
+        </div>
+
+        <div th:if="${logoutMessage}" class="alert alert-success" th:text="${logoutMessage}"></div>
+        <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></div>
+
+        <form th:action="@{/login}" method="post" class="auth-form">
+            <div class="form-group">
+                <label for="username" class="form-label">メールアドレス</label>
+                <input type="email" id="username" name="username" class="form-input"
+                       placeholder="example@gmail.com" required autofocus>
+            </div>
+            <div class="form-group">
+                <label for="password" class="form-label">パスワード</label>
+                <input type="password" id="password" name="password" class="form-input"
+                       placeholder="パスワード" required>
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">ログイン</button>
+        </form>
+
+        <p class="auth-link">アカウントをお持ちでない方は <a th:href="@{/register}">新規登録</a></p>
+    </div>
+</div>
+</body>
+</html>

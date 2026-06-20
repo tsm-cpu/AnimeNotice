@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AnimeNotice</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<nav class="navbar">
+    <div class="navbar-brand">
+        <span class="brand-icon">🌸</span>
+        <span class="brand-name">AnimeNotice</span>
+    </div>
+    <div class="navbar-actions">
+        <span class="user-email" th:text="${userEmail}"></span>
+        <a th:href="@{/anime/new}" class="btn btn-primary">+ アニメを追加</a>
+        <a th:href="@{/settings}" class="btn btn-ghost">⚙ 設定</a>
+        <form th:action="@{/logout}" method="post" style="display:inline">
+            <button type="submit" class="btn btn-ghost">ログアウト</button>
+        </form>
+    </div>
+</nav>
+
+<main class="container">
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+
+    <div class="page-header">
+        <h1>登録アニメ一覧</h1>
+        <span class="badge" th:text="${totalCount} + '本登録中'"></span>
+    </div>
+
+    <div th:if="${totalCount == 0}" class="empty-state">
+        <div class="empty-icon">📺</div>
+        <p>まだアニメが登録されていません</p>
+        <a th:href="@{/anime/new}" class="btn btn-primary">最初のアニメを追加する</a>
+    </div>
+
+    <div th:unless="${totalCount == 0}" class="day-sections">
+        <div th:each="entry : ${dayNames}" class="day-section"
+             th:classappend="${entry.key == today} ? 'today' : ''">
+            <div class="day-header">
+                <h2 class="day-title">
+                    <span class="day-dot" th:classappend="${entry.key == today} ? 'today-dot' : ''"></span>
+                    <span th:text="${entry.value}"></span>
+                    <span th:if="${entry.key == today}" class="today-label">今日</span>
+                </h2>
+                <span class="day-count"
+                      th:text="${groupedAnime[entry.key] != null ? groupedAnime[entry.key].size() + '本' : '0本'}"></span>
+            </div>
+
+            <div th:if="${groupedAnime[entry.key] == null or groupedAnime[entry.key].isEmpty()}"
+                 class="no-anime">この曜日のアニメはありません</div>
+
+            <div th:unless="${groupedAnime[entry.key] == null or groupedAnime[entry.key].isEmpty()}"
+                 class="anime-grid">
+                <div th:each="anime : ${groupedAnime[entry.key]}" class="anime-card"
+                     th:classappend="${!anime.notificationEnabled} ? 'muted' : ''">
+                    <div class="anime-card-body">
+                        <div class="anime-title" th:text="${anime.title}"></div>
+                        <div class="anime-meta">
+                            <span class="site-badge" th:text="${anime.streamingSite.displayName}"></span>
+                            <span th:if="${anime.startTime != null and !anime.startTime.isEmpty()}"
+                                  class="time-badge" th:text="${anime.startTime} + '〜'"></span>
+                        </div>
+                        <div th:if="${anime.memo != null and !anime.memo.isEmpty()}"
+                             class="anime-memo" th:text="${anime.memo}"></div>
+                    </div>
+                    <div class="anime-card-actions">
+                        <form th:action="@{/anime/{id}/toggle(id=${anime.id})}" method="post" style="display:inline">
+                            <button type="submit" class="btn-icon"
+                                    th:title="${anime.notificationEnabled ? '通知をオフにする' : '通知をオンにする'}"
+                                    th:text="${anime.notificationEnabled ? '🔔' : '🔕'}"></button>
+                        </form>
+                        <a th:href="@{/anime/{id}/edit(id=${anime.id})}" class="btn-icon" title="編集">✏️</a>
+                        <form th:action="@{/anime/{id}/delete(id=${anime.id})}" method="post" style="display:inline"
+                              onsubmit="return confirm('「' + this.closest('.anime-card').querySelector('.anime-title').textContent + '」を削除しますか？')">
+                            <button type="submit" class="btn-icon btn-danger" title="削除">🗑</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer class="footer">
+    <p>AnimeNotice &copy; 2026</p>
+</footer>
+</body>
+</html>

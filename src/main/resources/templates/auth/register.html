@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新規登録 - AnimeNotice</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-header">
+            <span class="brand-icon">🌸</span>
+            <h1 class="brand-name">AnimeNotice</h1>
+            <p class="auth-subtitle">新規登録</p>
+        </div>
+
+        <div th:if="${errorMessage}" class="alert alert-error" th:text="${errorMessage}"></div>
+
+        <form th:action="@{/register}" method="post" class="auth-form">
+            <div class="form-group">
+                <label for="email" class="form-label">メールアドレス</label>
+                <input type="email" id="email" name="email" class="form-input"
+                       placeholder="example@gmail.com" required autofocus>
+                <span class="form-hint">通知メールの送信先として使用されます</span>
+            </div>
+            <div class="form-group">
+                <label for="password" class="form-label">パスワード</label>
+                <input type="password" id="password" name="password" class="form-input"
+                       placeholder="8文字以上" required minlength="8">
+            </div>
+            <div class="form-group">
+                <label for="confirmPassword" class="form-label">パスワード（確認）</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" class="form-input"
+                       placeholder="もう一度入力" required minlength="8">
+            </div>
+            <button type="submit" class="btn btn-primary btn-full">登録する</button>
+        </form>
+
+        <p class="auth-link">すでにアカウントをお持ちの方は <a th:href="@{/login}">ログイン</a></p>
+    </div>
+</div>
+</body>
+</html>
