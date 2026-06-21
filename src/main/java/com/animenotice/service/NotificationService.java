@@ -2,10 +2,11 @@ package com.animenotice.service;
 
 import com.animenotice.model.Anime;
 import com.animenotice.model.User;
-import com.resend.Resend;
-import com.resend.core.exception.ResendException;
-import com.resend.services.emails.model.CreateEmailOptions;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.MailException;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.time.DayOfWeek;
@@ -17,8 +18,11 @@ import java.util.Locale;
 @Service
 public class NotificationService {
 
-    @Value("${resend.api-key:}")
-    private String apiKey;
+    @Autowired(required = false)
+    private JavaMailSender mailSender;
+
+    @Value("${spring.mail.username:}")
+    private String fromEmail;
 
     private final AnimeService animeService;
 
@@ -27,8 +31,8 @@ public class NotificationService {
     }
 
     public void sendDailyNotification(User user) {
-        if (apiKey == null || apiKey.isBlank()) {
-            System.out.println("[通知] Resend APIキーが未設定のため通知をスキップしました");
+        if (mailSender == null || fromEmail.isBlank()) {
+            System.out.println("[通知] メール設定が未設定のため通知をスキップしました");
             return;
         }
 
@@ -56,31 +60,29 @@ public class NotificationService {
                     "【AnimeNotice】今日のアニメ更新通知 " + today.getDisplayName(TextStyle.SHORT, Locale.JAPANESE),
                     body.toString());
             System.out.println("[通知] メール送信完了: " + user.getEmail() + " (" + todayAnime.size() + "件)");
-        } catch (ResendException e) {
+        } catch (MailException e) {
             System.err.println("[通知] メール送信失敗: " + e.getMessage());
         }
     }
 
     public String testNotification(User user) {
-        if (apiKey == null || apiKey.isBlank()) {
-            return "Resend APIキーが未設定です。環境変数 RESEND_API_KEY を確認してください。";
+        if (mailSender == null || fromEmail.isBlank()) {
+            return "メール設定が未設定です。application.properties の spring.mail.username と spring.mail.password を確認してください。";
         }
         try {
             send(user.getEmail(), "【AnimeNotice】テスト通知", "AnimeNoticeのテスト通知です。\nメール設定が正常に動作しています。");
             return "テストメールを送信しました: " + user.getEmail();
-        } catch (ResendException e) {
+        } catch (MailException e) {
             return "メール送信エラー: " + e.getMessage();
         }
     }
 
-    private void send(String to, String subject, String text) throws ResendException {
-        Resend resend = new Resend(apiKey);
-        CreateEmailOptions params = CreateEmailOptions.builder()
-                .from("onboarding@resend.dev")
-                .to(to)
-                .subject(subject)
-                .text(text)
-                .build();
-        resend.emails().send(params);
+    private void send(String to, String subject, String text) {
+        SimpleMailMessage message = new SimpleMailMessage();
+        message.setFrom(fromEmail);
+        message.setTo(to);
+        message.setSubject(subject);
+        message.setText(text);
+        mailSender.send(message);
     }
 }
