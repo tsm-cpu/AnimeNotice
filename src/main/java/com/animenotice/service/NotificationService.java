@@ -2,37 +2,39 @@ package com.animenotice.service;
 
 import com.animenotice.model.Anime;
 import com.animenotice.model.User;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.MailException;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.TextStyle;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 @Service
 public class NotificationService {
 
-    @Autowired(required = false)
-    private JavaMailSender mailSender;
+    @Value("${brevo.api-key:}")
+    private String apiKey;
 
-    @Value("${spring.mail.username:}")
+    @Value("${brevo.from-email:}")
     private String fromEmail;
 
     private final AnimeService animeService;
+    private final RestTemplate restTemplate = new RestTemplate();
 
     public NotificationService(AnimeService animeService) {
         this.animeService = animeService;
     }
 
     public void sendDailyNotification(User user) {
-        if (mailSender == null || fromEmail.isBlank()) {
-            System.out.println("[通知] メール設定が未設定のため通知をスキップしました");
+        if (apiKey == null || apiKey.isBlank()) {
+            System.out.println("[通知] Brevo APIキーが未設定のため通知をスキップしました");
             return;
         }
 
@@ -60,29 +62,36 @@ public class NotificationService {
                     "【AnimeNotice】今日のアニメ更新通知 " + today.getDisplayName(TextStyle.SHORT, Locale.JAPANESE),
                     body.toString());
             System.out.println("[通知] メール送信完了: " + user.getEmail() + " (" + todayAnime.size() + "件)");
-        } catch (MailException e) {
+        } catch (Exception e) {
             System.err.println("[通知] メール送信失敗: " + e.getMessage());
         }
     }
 
     public String testNotification(User user) {
-        if (mailSender == null || fromEmail.isBlank()) {
-            return "メール設定が未設定です。application.properties の spring.mail.username と spring.mail.password を確認してください。";
+        if (apiKey == null || apiKey.isBlank()) {
+            return "Brevo APIキーが未設定です。環境変数 BREVO_API_KEY を確認してください。";
         }
         try {
             send(user.getEmail(), "【AnimeNotice】テスト通知", "AnimeNoticeのテスト通知です。\nメール設定が正常に動作しています。");
             return "テストメールを送信しました: " + user.getEmail();
-        } catch (MailException e) {
+        } catch (Exception e) {
             return "メール送信エラー: " + e.getMessage();
         }
     }
 
     private void send(String to, String subject, String text) {
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setFrom(fromEmail);
-        message.setTo(to);
-        message.setSubject(subject);
-        message.setText(text);
-        mailSender.send(message);
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("api-key", apiKey);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+
+        Map<String, Object> body = Map.of(
+                "sender", Map.of("name", "AnimeNotice", "email", fromEmail),
+                "to", List.of(Map.of("email", to)),
+                "subject", subject,
+                "textContent", text
+        );
+
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+        restTemplate.postForEntity("https://api.brevo.com/v3/smtp/email", request, String.class);
     }
 }
