@@ -6,6 +6,7 @@ import com.animenotice.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalTime;
 import java.util.List;
@@ -20,6 +21,7 @@ public class NotificationScheduler {
     private UserSettingsRepository userSettingsRepository;
 
     @Scheduled(cron = "0 * * * * *")
+    @Transactional
     public void checkAndNotify() {
         String now = String.format("%02d:%02d", LocalTime.now().getHour(), LocalTime.now().getMinute());
 
